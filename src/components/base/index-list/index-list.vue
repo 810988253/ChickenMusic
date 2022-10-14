@@ -4,7 +4,7 @@
       <li v-for="group in data" :key="group.title" class="group">
         <h2 class="title">{{ group.title }}</h2>
         <ul>
-          <li v-for="item in group.list" :key="item.id" class="item">
+          <li v-for="item in group.list" :key="item.id" class="item" @click="onItemClick(item)">
             <img class="avatar" v-lazy="item.pic" />
             <span class="name">{{ item.name }}</span>
           </li>
@@ -54,6 +54,13 @@
   const { onScroll, fixedTitle, fixedStyle, currentIndex } = useFixed(groupRef, props)
   const scrollRef = ref(null)
   const { shortcutList, onShortcutTouchStart, onShortcutTouchMove } = useShortcut(props, groupRef, scrollRef)
+
+  // eslint-disable-next-line no-undef
+  const emits = defineEmits(['select'])
+  // 传递选中歌手事件
+  function onItemClick(item) {
+    emits('select', item)
+  }
 </script>
 
 <style lang="scss" scoped>

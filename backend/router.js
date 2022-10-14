@@ -376,7 +376,7 @@ function registerSongsUrl(app) {
 
     // 处理返回的 mid
     function process(mid) {
-      const data = {
+      const data = JSON.stringify({
         req_0: {
           module: 'vkey.GetVkeyServer',
           method: 'CgiGetVkey',
@@ -396,9 +396,9 @@ function registerSongsUrl(app) {
           format: 'json',
           platform: 'h5'
         }
-      }
+      })
 
-      const sign = getSecuritySign(JSON.stringify(data))
+      const sign = getSecuritySign(data)
       const url = `https://u.y.qq.com/cgi-bin/musics.fcg?_=${getRandomVal()}&sign=${sign}`
 
       // 发送 post 请求
