@@ -32,7 +32,7 @@
     pic: String
   })
 
-  const bgImageStyle = { 'background-image': `url(${props.pic})` }
+  const bgImageStyle = { backgroundImage: `url(${props.pic})` }
 
   const imageHeight = ref(0)
   const bgImageRef = ref(null)
