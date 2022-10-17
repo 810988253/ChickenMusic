@@ -5,6 +5,12 @@
     </div>
     <h1 class="title">{{ title }}</h1>
     <div class="bg-image" :style="bgImageStyle" ref="bgImageRef">
+      <div class="play-btn-wrapper" :style="playBtnStyle">
+        <div v-if="songs.length > 0" class="play-btn" @click="random">
+          <i class="icon-play"></i>
+          <span class="text">随机播放全部</span>
+        </div>
+      </div>
       <div class="filter" :style="filterStyle"></div>
     </div>
     <Scroll
@@ -16,7 +22,7 @@
       @scroll="onScroll"
     >
       <div class="song-list-wrapper">
-        <SongList :songs="songs"></SongList>
+        <SongList :songs="songs" @select="selectItem"></SongList>
       </div>
     </Scroll>
   </div>
@@ -27,7 +33,9 @@
   import Scroll from '@/components/base/scroll/scroll.vue'
   import { ref, onMounted, computed } from 'vue'
   import { useRouter } from 'vue-router'
+  import { useStore } from 'vuex'
 
+  const store = useStore()
   const router = useRouter()
   // eslint-disable-next-line no-undef
   const props = defineProps({
@@ -115,10 +123,33 @@
   const noResult = computed(() => {
     return !props.loading && !props.songs.length
   })
+
   // 返回按钮
   function goBack() {
     router.back()
   }
+
+  // 选中歌曲进行播放的事件
+  // eslint-disable-next-line no-unused-vars
+  function selectItem({ song, index }) {
+    store.dispatch('selectPlay', {
+      list: props.songs,
+      index: index
+    })
+  }
+
+  // 随机播放
+  function random() {
+    store.dispatch('randomPlay', props.songs)
+  }
+
+  const playBtnStyle = computed(() => {
+    let display = ''
+    if (scrollY.value >= maxTranslateY.value) {
+      display = 'none'
+    }
+    return { display }
+  })
 </script>
 
 <style lang="scss" scoped>
