@@ -12,9 +12,21 @@
         <h2 class="subtitle">{{ currentSong.singer }}</h2>
       </div>
       <div class="bottom">
+        <div class="progress-wrapper">
+          <span class="time time-l">{{ formatTime(currentTime) }}</span>
+          <div class="progress-bar-wrapper">
+            <ProgressBar
+              :progress="progress"
+              @progress-changing="onProgressChanging"
+              @progress-changed="onProgressChanged"
+            >
+            </ProgressBar>
+          </div>
+          <span class="time time-l">{{ formatTime(currentSong.duration) }}</span>
+        </div>
         <div class="operators">
           <div class="icon i-left">
-            <i class="icon-sequence"></i>
+            <i :class="modeIcon" @click="changeMode"></i>
           </div>
           <div class="icon i-left" :class="disableCls">
             <i @click="prev" class="icon-prev"></i>
@@ -26,18 +38,30 @@
             <i @click="next" class="icon-next"></i>
           </div>
           <div class="icon i-right">
-            <i class="icon-not-favorite"></i>
+            <i :class="getFavoriteIcon(currentSong)" @click="toggleFavorite(currentSong)"></i>
           </div>
         </div>
       </div>
     </div>
-    <audio ref="audioRef" @pause="pause" @canplay="ready" @error="error"></audio>
+    <audio
+      ref="audioRef"
+      @pause="pause"
+      @canplay="ready"
+      @error="error"
+      @timeupdate="updateTime"
+      @ended="end"
+    ></audio>
   </div>
 </template>
 
 <script setup>
   import { useStore } from 'vuex'
   import { computed, watch, ref } from 'vue'
+  import useMode from './use-mode'
+  import useFavorite from './use-favorite'
+  import ProgressBar from './progress-bar.vue'
+  import { formatTime } from '@/assets/js/util'
+  import { PLAY_MODE } from '@/assets/js/constant'
 
   const store = useStore()
   const fullScreen = computed(() => store.state.fullScreen)
@@ -50,11 +74,13 @@
     if (!newSong.id || !newSong.url) {
       return
     }
+    currentTime.value = 0
     // 切换歌曲时，歌曲应是未缓冲完成的状态，以免继续切换报错
     songReady.value = false
     const audioEl = audioRef.value
     audioEl.src = newSong.url
     audioEl.play()
+    store.commit('setPlayingState', true)
   })
 
   // 缩小播放器
@@ -77,6 +103,9 @@
 
   // 监测播放状态，切换音频的播放或暂停
   watch(playing, newPlaying => {
+    if (!songReady.value) {
+      return
+    }
     const audioEl = audioRef.value
     newPlaying ? audioEl.play() : audioEl.pause()
   })
@@ -105,9 +134,6 @@
         index = list.length - 1
       }
       store.commit('setCurrentIndex', index)
-      if (!playing.value) {
-        store.commit('setPlayingState', true)
-      }
     }
   }
 
@@ -126,9 +152,6 @@
         index = 0
       }
       store.commit('setCurrentIndex', index)
-      if (!playing.value) {
-        store.commit('setPlayingState', true)
-      }
     }
   }
 
@@ -137,6 +160,7 @@
     const audioEl = audioRef.value
     audioEl.currentTime = 0
     audioEl.play()
+    store.commit('setPlayingState', true)
   }
 
   // 歌曲是否缓冲完成
@@ -158,6 +182,43 @@
   // 歌曲出错，重置为准备好，可以切换上一首或下一首
   function error() {
     songReady.value = true
+  }
+
+  // 切换播放模式按钮，更改模式函数
+  const { modeIcon, changeMode } = useMode()
+  // 喜欢按钮，喜欢或取消喜欢
+  const { getFavoriteIcon, toggleFavorite } = useFavorite()
+
+  // 歌曲当前时间
+  const currentTime = ref(0)
+  // 随着歌曲播放currentTime变化，progress变化
+  const progress = computed(() => {
+    return currentTime.value / currentSong.value.duration
+  })
+  let progressChanging = false
+  // 原生DOM事件触发updateTime事件，更新当前时间
+  function updateTime(e) {
+    if (!progressChanging) {
+      currentTime.value = e.target.currentTime
+    }
+  }
+  function onProgressChanging(progress) {
+    progressChanging = true
+    currentTime.value = currentSong.value.duration * progress
+  }
+  function onProgressChanged(progress) {
+    progressChanging = false
+    audioRef.value.currentTime = currentTime.value = currentSong.value.duration * progress
+  }
+
+  const playMode = computed(() => store.state.playMode)
+  function end() {
+    currentTime.value = 0
+    if (playMode.value === PLAY_MODE.loop) {
+      loop()
+    } else {
+      next()
+    }
   }
 </script>
 
