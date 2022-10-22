@@ -11,6 +11,35 @@
         <h1 class="title">{{ currentSong.name }}</h1>
         <h2 class="subtitle">{{ currentSong.singer }}</h2>
       </div>
+      <div class="middle">
+        <div class="middle-l">
+          <div class="cd-wrapper">
+            <div class="cd" ref="cdRef">
+              <img ref="cdImageRef" :src="currentSong.pic" class="image" :class="cdCls" />
+            </div>
+          </div>
+          <div class="playing-lyric-wrapper">
+            <div class="playing-lyric">{{ playingLyric }}</div>
+          </div>
+        </div>
+        <Scroll class="middle-r" ref="lyricScrollRef">
+          <div class="lyric-wrapper">
+            <div v-if="currentLyric" ref="lyricListRef">
+              <p
+                class="text"
+                v-for="(line, index) in currentLyric.lines"
+                :key="line.num"
+                :class="{ 'current': currentLineNum === index }"
+              >
+                {{ line.txt }}
+              </p>
+            </div>
+            <div class="pure-music" v-show="pureMusicLyric">
+              <p>{{ pureMusicLyric }}</p>
+            </div>
+          </div>
+        </Scroll>
+      </div>
       <div class="bottom">
         <div class="progress-wrapper">
           <span class="time time-l">{{ formatTime(currentTime) }}</span>
@@ -58,10 +87,13 @@
   import { useStore } from 'vuex'
   import { computed, watch, ref } from 'vue'
   import useMode from './use-mode'
+  import useCd from './use-cd'
   import useFavorite from './use-favorite'
   import ProgressBar from './progress-bar.vue'
   import { formatTime } from '@/assets/js/util'
   import { PLAY_MODE } from '@/assets/js/constant'
+  import useLyric from './use-lyric'
+  import Scroll from '../base/scroll/scroll.vue'
 
   const store = useStore()
   const fullScreen = computed(() => store.state.fullScreen)
@@ -107,7 +139,13 @@
       return
     }
     const audioEl = audioRef.value
-    newPlaying ? audioEl.play() : audioEl.pause()
+    if (newPlaying) {
+      audioEl.play()
+      playLyric()
+    } else {
+      audioEl.pause()
+      stopLyric()
+    }
   })
 
   // 电脑待机或合盖后，停止播放，原生DOM事件pause
@@ -177,6 +215,7 @@
       return
     }
     songReady.value = true
+    playLyric()
   }
 
   // 歌曲出错，重置为准备好，可以切换上一首或下一首
@@ -205,10 +244,13 @@
   function onProgressChanging(progress) {
     progressChanging = true
     currentTime.value = currentSong.value.duration * progress
+    playLyric()
+    stopLyric()
   }
   function onProgressChanged(progress) {
     progressChanging = false
     audioRef.value.currentTime = currentTime.value = currentSong.value.duration * progress
+    playLyric()
   }
 
   const playMode = computed(() => store.state.playMode)
@@ -220,6 +262,22 @@
       next()
     }
   }
+
+  const { cdCls, cdRef, cdImageRef } = useCd()
+
+  const {
+    currentLyric,
+    currentLineNum,
+    playLyric,
+    lyricListRef,
+    lyricScrollRef,
+    stopLyric,
+    pureMusicLyric,
+    playingLyric
+  } = useLyric({
+    songReady,
+    currentTime
+  })
 </script>
 
 <style lang="scss" scoped>
