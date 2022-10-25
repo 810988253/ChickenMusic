@@ -1,28 +1,37 @@
 import { ref } from 'vue'
 
 export default function useMiddleInteractive() {
-  // 将要看到的视图
-  const currentShow = ref('cd')
+  const currentView = ref('cd')
   const middleLStyle = ref(null)
   const middleRStyle = ref(null)
 
   const touch = {}
-  let currentView = 'cd'
+
+  let moved = false
 
   function onMiddleTouchStart(e) {
-    console.log(currentShow.value)
-    console.log(currentView)
     touch.startX = e.touches[0].pageX
+    touch.startY = e.touches[0].pageY
+    touch.directionLock = ''
   }
   function onMiddleTouchMove(e) {
-    console.log('onMiddleTouchMove')
+    moved = true
     const deltaX = e.touches[0].pageX - touch.startX
-    const offsetWidth =
-      currentView === 'cd'
-        ? Math.min(0, Math.max(-window.innerWidth, deltaX))
-        : Math.min(window.innerWidth, Math.max(0, deltaX))
-    touch.percent = Math.abs(offsetWidth / window.innerWidth)
+    const deltaY = e.touches[0].pageY - touch.startY
 
+    const absDeltaX = Math.abs(deltaX)
+    const absDeltaY = Math.abs(deltaY)
+
+    if (!touch.directionLock) {
+      touch.directionLock = absDeltaX >= absDeltaY ? 'h' : 'v'
+    }
+    if (touch.directionLock === 'v') {
+      return
+    }
+
+    const left = currentView.value === 'cd' ? 0 : -window.innerWidth
+    const offsetWidth = Math.min(0, Math.max(-window.innerWidth, left + deltaX))
+    touch.percent = Math.abs(offsetWidth / window.innerWidth)
     middleLStyle.value = {
       opacity: 1 - touch.percent,
       transitionDuration: '0ms'
@@ -33,23 +42,29 @@ export default function useMiddleInteractive() {
     }
   }
   function onMiddleTouchEnd() {
+    if (!moved) {
+      return
+    }
     let offsetWidth
     let opacity
-    if (touch.percent > 0.5) {
-      if (currentView === 'cd') {
-        currentShow.value = 'lyric'
+    if (currentView.value === 'cd') {
+      if (touch.percent > 0.5) {
+        currentView.value = 'lyric'
+        offsetWidth = -window.innerWidth
+        opacity = 0
       } else {
-        currentShow.value = 'cd'
+        offsetWidth = 0
+        opacity = 1
       }
-    }
-    if (currentShow.value === 'cd') {
-      currentView = 'cd'
-      offsetWidth = 0
-      opacity = 1
     } else {
-      currentView = 'lyric'
-      offsetWidth = -window.innerWidth
-      opacity = 0
+      if (touch.percent < 0.5) {
+        currentView.value = 'cd'
+        offsetWidth = 0
+        opacity = 1
+      } else {
+        offsetWidth = -window.innerWidth
+        opacity = 0
+      }
     }
 
     const duration = 300
@@ -61,6 +76,7 @@ export default function useMiddleInteractive() {
       transform: `translate3d(${offsetWidth}px,0,0)`,
       transitionDuration: `${duration}ms`
     }
+    moved = false
   }
-  return { currentShow, middleLStyle, middleRStyle, onMiddleTouchStart, onMiddleTouchMove, onMiddleTouchEnd }
+  return { currentView, middleLStyle, middleRStyle, onMiddleTouchStart, onMiddleTouchMove, onMiddleTouchEnd }
 }

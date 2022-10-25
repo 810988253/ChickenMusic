@@ -38,8 +38,7 @@
   const offset = ref(0)
   // progress发生改变，进度条也发生改变
   watch(toRef(props, 'progress'), newProgress => {
-    const barWidth = progressBarRef.value.clientWidth - progressBtnWidth
-    offset.value = barWidth * newProgress
+    setOffset(newProgress)
   })
 
   // 进度条的偏移量
@@ -76,6 +75,12 @@
     const progress = offsetWidth / barWidth
     emits('progress-changed', progress)
   }
+  function setOffset(progress) {
+    const barWidth = progressBarRef.value.clientWidth - progressBtnWidth
+    offset.value = barWidth * progress
+  }
+  // eslint-disable-next-line no-undef
+  defineExpose({ setOffset })
 </script>
 
 <style lang="scss" scoped>

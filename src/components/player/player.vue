@@ -11,8 +11,13 @@
         <h1 class="title">{{ currentSong.name }}</h1>
         <h2 class="subtitle">{{ currentSong.singer }}</h2>
       </div>
-      <div class="middle">
-        <div class="middle-l">
+      <div
+        class="middle"
+        @touchstart.prevent="onMiddleTouchStart"
+        @touchmove.prevent="onMiddleTouchMove"
+        @touchend.prevent="onMiddleTouchEnd"
+      >
+        <div class="middle-l" :style="middleLStyle">
           <div class="cd-wrapper">
             <div class="cd" ref="cdRef">
               <img ref="cdImageRef" :src="currentSong.pic" class="image" :class="cdCls" />
@@ -22,7 +27,7 @@
             <div class="playing-lyric">{{ playingLyric }}</div>
           </div>
         </div>
-        <Scroll class="middle-r" ref="lyricScrollRef">
+        <Scroll class="middle-r" ref="lyricScrollRef" :style="middleRStyle">
           <div class="lyric-wrapper">
             <div v-if="currentLyric" ref="lyricListRef">
               <p
@@ -41,10 +46,15 @@
         </Scroll>
       </div>
       <div class="bottom">
+        <div class="dot-wrapper">
+          <span class="dot" :class="{ 'active': currentView === 'cd' }"></span>
+          <span class="dot" :class="{ 'active': currentView === 'lyric' }"></span>
+        </div>
         <div class="progress-wrapper">
           <span class="time time-l">{{ formatTime(currentTime) }}</span>
           <div class="progress-bar-wrapper">
             <ProgressBar
+              ref="barRef"
               :progress="progress"
               @progress-changing="onProgressChanging"
               @progress-changed="onProgressChanged"
@@ -72,6 +82,7 @@
         </div>
       </div>
     </div>
+    <MiniPlayer :progress="progress" :toggle-play="togglePlay"></MiniPlayer>
     <audio
       ref="audioRef"
       @pause="pause"
@@ -85,7 +96,7 @@
 
 <script setup>
   import { useStore } from 'vuex'
-  import { computed, watch, ref } from 'vue'
+  import { computed, watch, ref, nextTick } from 'vue'
   import useMode from './use-mode'
   import useCd from './use-cd'
   import useFavorite from './use-favorite'
@@ -94,6 +105,8 @@
   import { PLAY_MODE } from '@/assets/js/constant'
   import useLyric from './use-lyric'
   import Scroll from '../base/scroll/scroll.vue'
+  import useMiddleInteractive from './use-middle-interactive'
+  import MiniPlayer from './mini-player.vue'
 
   const store = useStore()
   const fullScreen = computed(() => store.state.fullScreen)
@@ -277,6 +290,16 @@
   } = useLyric({
     songReady,
     currentTime
+  })
+
+  const { currentView, middleLStyle, middleRStyle, onMiddleTouchStart, onMiddleTouchMove, onMiddleTouchEnd } =
+    useMiddleInteractive()
+  const barRef = ref(null)
+  watch(fullScreen, async newfullScreen => {
+    if (newfullScreen) {
+      await nextTick()
+      barRef.value.setOffset(progress.value)
+    }
   })
 </script>
 
