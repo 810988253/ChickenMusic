@@ -38,7 +38,7 @@
   })
 
   const dashArray = ref(Math.PI * 100)
-  const dashOffset = computed(() => (1 - props.progress) * props.dashArray)
+  const dashOffset = computed(() => (1 - props.progress) * dashArray.value)
 </script>
 
 <style lang="scss" scoped>

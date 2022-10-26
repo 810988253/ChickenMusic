@@ -6,7 +6,7 @@
           <img ref="cdImageRef" width="40" height="40" :src="currentSong.pic" :class="cdCls" />
         </div>
       </div>
-      <div class="slider-wrapper">
+      <div class="slider-wrapper" ref="sliderWrapperRef">
         <div class="slider-group">
           <div class="slider-page" v-for="song in playlist" :key="song.id">
             <h2 class="name">{{ song.name }}</h2>
@@ -26,7 +26,7 @@
 <script setup>
   import { computed } from 'vue'
   import { useStore } from 'vuex'
-
+  import useMiniSlider from './use-mini-slider'
   import ProgressCircle from './progress-circle.vue'
   import useCd from './use-cd'
 
@@ -36,6 +36,7 @@
   const playing = computed(() => store.state.playing)
   const playlist = computed(() => store.state.playlist)
   const { cdCls, cdRef, cdImageRef } = useCd()
+  const { sliderWrapperRef } = useMiniSlider()
   // eslint-disable-next-line no-undef
   defineProps({
     progress: {
