@@ -119,7 +119,9 @@
 
   const store = useStore()
   const fullScreen = computed(() => store.state.fullScreen)
-  const currentSong = computed(() => store.getters.currentSong)
+  const currentSong = computed(() => {
+    return store.getters.currentSong
+  })
 
   // 播放节点
   const audioRef = ref(null)
@@ -134,6 +136,7 @@
     const audioEl = audioRef.value
     audioEl.src = newSong.url
     audioEl.play()
+
     store.commit('setPlayingState', true)
   })
 
