@@ -7,6 +7,9 @@
             <h1 class="title">
               <i class="icon" :class="modeIcon" @click="changeMode"></i>
               <span class="text">{{ modeText }}</span>
+              <span class="clear" @click="showConfirm">
+                <i class="icon-clear"></i>
+              </span>
             </h1>
           </div>
           <Scroll class="list-content" ref="scrollRef">
@@ -27,6 +30,12 @@
             <span>关闭</span>
           </div>
         </div>
+        <Confirm
+          text="是否清空播放列表？"
+          confirm-btn-text="清空"
+          ref="confirmRef"
+          @confirm="confirmClear"
+        ></Confirm>
       </div>
     </transition>
   </teleport>
@@ -38,6 +47,7 @@
   import Scroll from '../base/scroll/scroll.vue'
   import useMode from './use-mode'
   import useFavorite from './use-favorite'
+  import Confirm from '../base/confirm/confirm.vue'
 
   const visible = ref(false)
   const store = useStore()
@@ -96,9 +106,22 @@
     }
     removing.value = true
     store.dispatch('removeSong', song)
+    if (!playlist.value.length) {
+      hide()
+    }
     setTimeout(() => {
       removing.value = false
     }, 300)
+  }
+
+  const confirmRef = ref(null)
+  function showConfirm() {
+    confirmRef.value.show()
+  }
+
+  function confirmClear() {
+    store.dispatch('clearSongList')
+    hide()
   }
 </script>
 
