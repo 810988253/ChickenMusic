@@ -36,6 +36,7 @@
   import { useStore } from 'vuex'
 
   const store = useStore()
+  const playlist = computed(() => store.state.playlist)
   const router = useRouter()
   // eslint-disable-next-line no-undef
   const props = defineProps({
@@ -95,16 +96,19 @@
   const imageHeight = ref(0)
   // 图片DOM节点的ref
   const bgImageRef = ref(null)
-  // 列表Top等于图片的实际高度
-  const scrollStyle = ref(null)
 
   onMounted(() => {
     // 获取图片实际高度
     imageHeight.value = bgImageRef.value.clientHeight
     // 图片实际高度-标题高度，就是scroll能滚动的最大距离
     maxTranslateY.value = imageHeight.value - RESERVED_HEIGHT
-    // Top值设置
-    scrollStyle.value = { top: `${imageHeight.value}px` }
+  })
+  // 列表Top等于图片的实际高度
+  // Top值设置
+  const scrollStyle = computed(() => {
+    const bottom = playlist.value.length ? '60px' : '0'
+    console.log(playlist.value.length)
+    return { top: `${imageHeight.value}px`, bottom }
   })
 
   // 图片模糊效果
