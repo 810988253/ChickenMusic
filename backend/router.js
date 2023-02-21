@@ -463,7 +463,7 @@ function registerLyric(app) {
 // 注册歌单专辑接口
 function registerAlbum(app) {
   app.get('/api/getAlbum', (req, res) => {
-    const data = {
+    const data = JSON.stringify({
       req_0: {
         module: 'srf_diss_info.DissInfoServer',
         method: 'CgiGetDiss',
@@ -480,9 +480,8 @@ function registerAlbum(app) {
         format: 'json',
         platform: 'h5'
       }
-    }
-
-    const sign = getSecuritySign(JSON.stringify(data))
+    })
+    const sign = getSecuritySign(data)
 
     const url = `https://u.y.qq.com/cgi-bin/musics.fcg?_=${getRandomVal()}&sign=${sign}`
 

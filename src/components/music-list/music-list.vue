@@ -107,7 +107,6 @@
   // Top值设置
   const scrollStyle = computed(() => {
     const bottom = playlist.value.length ? '60px' : '0'
-    console.log(playlist.value.length)
     return { top: `${imageHeight.value}px`, bottom }
   })
 
