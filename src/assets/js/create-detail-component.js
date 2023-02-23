@@ -48,6 +48,7 @@ export default function createDetailComponent(name, key, fetch) {
         return
       }
       const result = await fetch(data)
+      console.log(result)
       this.songs = await processSongs(result.songs)
       this.loading = false
     }

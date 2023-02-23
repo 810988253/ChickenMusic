@@ -526,7 +526,6 @@ function registerTopList(app) {
       if (data.code === ERR_OK) {
         const topList = []
         const group = data.toplist.data.group
-
         group.forEach(item => {
           item.toplist.forEach(listItem => {
             topList.push({
@@ -544,7 +543,6 @@ function registerTopList(app) {
             })
           })
         })
-
         res.json({
           code: ERR_OK,
           result: {
@@ -593,7 +591,6 @@ function registerTopDetail(app) {
       if (data.code === ERR_OK) {
         const list = data.detail.data.songInfoList
         const songList = handleSongList(list)
-
         res.json({
           code: ERR_OK,
           result: {
